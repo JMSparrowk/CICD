@@ -48,13 +48,13 @@ jobs:
           command_timeout: 10m
           script: |
             set -e
-
-            echo "=== jar 정리 ==="
-            mv /home/ubuntu/app/build/libs/CICDtest-0.0.1-SNAPSHOT.jar /home/ubuntu/app/app.jar
-
+            
             echo "=== 기존 프로세스 종료 ==="
             pkill -f "java -jar" || true
             sleep 2
+
+            echo "=== jar 정리 ==="
+            mv /home/ubuntu/app/build/libs/CICDtest-0.0.1-SNAPSHOT.jar /home/ubuntu/app/app.jar
 
             echo "=== 실행 ==="
             nohup java -jar /home/ubuntu/app/app.jar \
