@@ -1,4 +1,4 @@
-name: CI-CD #workflow name
+name: CI-CD
 
 on:
   push:
@@ -24,3 +24,23 @@ jobs:
 
       - name: 빌드 및 테스트
         run: ./gradlew build
+
+      # 🔥 여기부터 CD
+      - name: EC2에 파일 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "build/libs/*.jar"
+          target: "/home/ubuntu/"
+
+      - name: EC2에서 실행
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            pkill -f java || true
+            nohup java -jar /home/ubuntu/*.jar > app.log 2>&1 &
