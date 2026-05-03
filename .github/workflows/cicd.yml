@@ -28,7 +28,7 @@ jobs:
       - name: 빌드
         run: ./gradlew clean bootJar
 
-      # 5. EC2로 jar 전송
+      # 5. jar 전송 (파일 1개로 고정)
       - name: EC2 파일 전송
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -36,7 +36,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_KEY }}
           source: "build/libs/*.jar"
-          target: "/home/ubuntu/app/libs/"
+          target: "/home/ubuntu/app/"
 
       # 6. EC2 실행
       - name: EC2 실행
@@ -49,12 +49,14 @@ jobs:
           script: |
             set -e
 
-            echo "=== JAR 선택 ==="
-            JAR=$(ls -t /home/ubuntu/app/libs/*.jar | head -n 1)
-            echo "JAR: $JAR"
+            echo "=== jar 정리 ==="
+            mv /home/ubuntu/app/*.jar /home/ubuntu/app/app.jar
+
+            echo "=== 기존 프로세스 종료 ==="
+            pkill -f "app.jar" || true
 
             echo "=== 실행 ==="
-            nohup java -jar $JAR \
+            nohup java -jar /home/ubuntu/app/app.jar \
               --server.port=8080 \
               --server.address=0.0.0.0 \
               > /home/ubuntu/app/app.log 2>&1 < /dev/null &
