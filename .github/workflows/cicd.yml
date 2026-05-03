@@ -2,7 +2,7 @@ name: CI-CD
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -17,8 +17,8 @@ jobs:
       - name: JDK 17 설정
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: "17"
 
       # 3. gradle 권한
       - name: gradlew 권한
@@ -28,7 +28,7 @@ jobs:
       - name: 빌드
         run: ./gradlew clean bootJar
 
-      # 5. jar 전송 (파일 1개로 고정)
+      # 5. jar 전송
       - name: EC2 파일 전송
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -38,7 +38,7 @@ jobs:
           source: "build/libs/*.jar"
           target: "/home/ubuntu/app/"
 
-      # 6. EC2 실행
+      # 6. 실행 (start.sh만 호출)
       - name: EC2 실행
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -48,19 +48,14 @@ jobs:
           command_timeout: 10m
           script: |
             set -e
-            
-            echo "=== 기존 프로세스 종료 ==="
-            pkill -f "java -jar" || true
-            sleep 2
 
-            echo "=== jar 정리 ==="
-            mv /home/ubuntu/app/build/libs/CICDtest-0.0.1-SNAPSHOT.jar /home/ubuntu/app/app.jar
+            echo "=== start.sh 실행 ==="
+            chmod +x /home/ubuntu/app/start.sh || true
+            /home/ubuntu/app/start.sh
 
-            echo "=== 실행 ==="
-            nohup java -jar /home/ubuntu/app/app.jar \
-              --server.port=8080 \
-              --server.address=0.0.0.0 \
-              > /home/ubuntu/app/app.log 2>&1 < /dev/null &
+            echo "=== 실행 확인 ==="
+            sleep 5
+            ps -ef | grep java || echo "실행 안 됨"
+            sudo ss -tulnp | grep 8080 || echo "8080 안 열림"
 
-            disown $!
             echo "=== 완료 ==="
