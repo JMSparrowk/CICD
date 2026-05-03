@@ -61,4 +61,5 @@ jobs:
               --server.address=0.0.0.0 \
               > /home/ubuntu/app/app.log 2>&1 < /dev/null &
 
+            disown $!
             echo "=== 완료 ==="
