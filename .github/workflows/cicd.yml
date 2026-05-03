@@ -1,8 +1,8 @@
 name: CI-CD #workflow name
 
-on: #いつ始めるか
+on:
   push:
-    branches: [ "main" ]　
+    branches: [ "main" ]
   pull_request:
 
 jobs:
