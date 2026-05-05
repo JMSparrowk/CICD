@@ -9,27 +9,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 코드 체크아웃
-      - name: 코드 체크아웃
+      # 1. コードチェックアウト
+      - name: コードチェックアウト
         uses: actions/checkout@v4
 
-      # 2. JDK 설정
-      - name: JDK 17 설정
+      # 2. JDK設定
+      - name: JDK 17 設定
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      # 3. gradle 권한
-      - name: gradlew 권한
+      # 3. gradlew 実行権限付与
+      - name: gradlew 権限付与
         run: chmod +x gradlew
 
-      # 4. 빌드
-      - name: 빌드
+      # 4. ビルド
+      - name: ビルド
         run: ./gradlew clean bootJar
 
-      # 5. jar 전송
-      - name: EC2 파일 전송
+      # 5. jar ファイル転送
+      - name: EC2 にファイル転送
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -38,8 +38,8 @@ jobs:
           source: "build/libs/*.jar"
           target: "/home/ubuntu/app/"
 
-      # 6. 실행 (start.sh만 호출)
-      - name: EC2 실행
+      # 6. 実行（start.sh 呼び出し）
+      - name: EC2 で実行
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -49,13 +49,13 @@ jobs:
           script: |
             set -e
 
-            echo "=== start.sh 실행 ==="
+            echo "=== start.sh 実行 ==="
             chmod +x /home/ubuntu/app/start.sh || true
             /home/ubuntu/app/start.sh
 
-            echo "=== 실행 확인 ==="
+            echo "=== 実行確認 ==="
             sleep 5
-            ps -ef | grep java || echo "실행 안 됨"
-            sudo ss -tulnp | grep 8080 || echo "8080 안 열림"
+            ps -ef | grep java || echo "実行されていません"
+            sudo ss -tulnp | grep 8080 || echo "8080 ポートが開いていません"
 
-            echo "=== 완료 ==="
+            echo "=== 完了 ==="
